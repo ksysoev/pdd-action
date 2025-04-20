@@ -30,6 +30,7 @@ var supportedLanguages = []Language{
 	{Extensions: []string{".ps1"}, LineComment: "#"},
 	{Extensions: []string{".fs"}, LineComment: "//", BlockCommentStart: "(*", BlockCommentEnd: "*)"},
 	{Extensions: []string{".m"}, LineComment: "//", BlockCommentStart: "/*", BlockCommentEnd: "*/"},
+	{Extensions: []string{".md", ".markdown"}, LineComment: "//"},
 }
 
 // GetLanguageForFile determines the language of a file based on its extension

@@ -1,6 +1,13 @@
 # pdd-action
 Github Action to add Puzzle Driven Development into your Github Repository 
 
+// TODO: Add comprehensive documentation
+// Labels: documentation,enhancement
+// This project needs more comprehensive documentation including:
+// - Detailed examples for different languages
+// - Troubleshooting section
+// - Advanced configuration options
+
 Puzzle Driven Development (PDD) is a software development methodology that focuses on breaking down complex problems into smaller, manageable puzzles.
 It encourages collaboration, creativity, and iterative problem-solving to deliver high-quality software solutions. 
 PDD emphasizes the importance of understanding the problem domain and leveraging the collective intelligence of the development team to find innovative solutions.
@@ -76,6 +83,11 @@ The following inputs are available:
 2. It scans the codebase for TODO comments in the specified format.
 3. For each unprocessed TODO comment (comments without an associated issue URL), it creates a new GitHub issue.
 4. It then updates the TODO comment in the code with the issue URL.
+
+// TODO: Add section on supported comment formats
+// Labels: documentation
+// Provide examples of TODO comments in different languages
+// to make it clearer how to use the tool across different codebases
 
 ## Development
 
