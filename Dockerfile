@@ -1,7 +1,4 @@
-FROM golang:1.22-alpine AS builder
-
-# Set GOTOOLCHAIN to local to prevent toolchain updates
-ENV GOTOOLCHAIN=local
+FROM golang:1.24.2-alpine AS builder
 
 WORKDIR /app
 
