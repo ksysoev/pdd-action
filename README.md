@@ -1,6 +1,13 @@
 # pdd-action
 Github Action to add Puzzle Driven Development into your Github Repository 
 
+// TODO: Add comprehensive documentation
+// Labels: documentation,enhancement
+// This project needs more comprehensive documentation including:
+// - Detailed examples for different languages
+// - Troubleshooting section
+// - Advanced configuration options
+
 Puzzle Driven Development (PDD) is a software development methodology that focuses on breaking down complex problems into smaller, manageable puzzles.
 It encourages collaboration, creativity, and iterative problem-solving to deliver high-quality software solutions. 
 PDD emphasizes the importance of understanding the problem domain and leveraging the collective intelligence of the development team to find innovative solutions.
@@ -44,6 +51,11 @@ on:
   pull_request:
     types: [closed]
 
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 jobs:
   pdd:
     if: github.event.pull_request.merged == true
@@ -53,7 +65,7 @@ jobs:
         uses: actions/checkout@v3
         
       - name: Run PDD Action
-        uses: kirill/pdd-action@v1
+        uses: ksysoev/pdd-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch_name: main
@@ -77,13 +89,43 @@ The following inputs are available:
 3. For each unprocessed TODO comment (comments without an associated issue URL), it creates a new GitHub issue.
 4. It then updates the TODO comment in the code with the issue URL.
 
+> **Important:** Make sure to set the appropriate permissions in your workflow file as shown in the example above. The action needs `contents: write`, `issues: write`, and `pull-requests: write` permissions to function correctly.
+
+// TODO: Add section on supported comment formats
+// Labels: documentation
+// Provide examples of TODO comments in different languages
+// to make it clearer how to use the tool across different codebases
+
+## Container Image
+
+This action uses a pre-built container image published to GitHub Container Registry. The container is automatically built and published when changes are pushed to the main branch or when a new tag is created.
+
+You can find the container images at: [ghcr.io/ksysoev/pdd-action](https://github.com/ksysoev/pdd-action/pkgs/container/pdd-action)
+
+## Versioning and Releases
+
+This action follows semantic versioning. You can use the action with specific version tags:
+
+```yaml
+# Use a specific version
+uses: ksysoev/pdd-action@v1.0.0
+
+# Use the latest version of a major release
+uses: ksysoev/pdd-action@v1
+
+# Use the latest version
+uses: ksysoev/pdd-action@main
+```
+
+Each release includes a pre-built container image that is automatically published to GitHub Container Registry.
+
 ## Development
 
 To build and test this action locally:
 
 ```bash
 # Clone the repository
-git clone https://github.com/kirill/pdd-action.git
+git clone https://github.com/ksysoev/pdd-action.git
 cd pdd-action
 
 # Build the project
@@ -91,4 +133,10 @@ go build -o pdd-action ./cmd/pdd-action
 
 # Run the project locally
 ./pdd-action
+
+# Build the container locally
+docker build -t pdd-action .
+
+# Test the container
+docker run --rm pdd-action
 ```

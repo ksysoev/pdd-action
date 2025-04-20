@@ -2,21 +2,46 @@ name: PDD Action
 
 on:
   pull_request:
-    types: [closed]
+    types: [opened, synchronize]
+  workflow_dispatch:
 
 jobs:
   pdd:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          
-      - name: Run PDD Action
-        uses: kirill/pdd-action@v1
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch_name: main
-          issue_title_prefix: "[PDD]"
+          go-version: '1.21'
+      
+      - name: Build PDD Action
+        run: |
+          go build -o pdd-action ./cmd/pdd-action
+      
+      - name: Debug info
+        run: |
+          echo "GITHUB_REF: ${{ github.ref }}"
+          echo "GITHUB_REF_NAME: ${{ github.ref_name }}"
+          echo "GITHUB_EVENT_NAME: ${{ github.event_name }}"
+          echo "GITHUB_WORKSPACE: ${{ github.workspace }}"
+          echo "GITHUB_REPOSITORY: ${{ github.repository }}"
+          
+      - name: Run PDD Action locally
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_NAME: "workflow_dispatch"
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          PDD_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PDD_BRANCH_NAME: test-pdd-action
+          PDD_ISSUE_PREFIX: "[PDD-TEST]"
+        run: |
+          ./pdd-action
