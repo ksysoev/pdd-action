@@ -133,12 +133,33 @@ func main() {
 	// Get PR head branch name or use current branch for workflow_dispatch
 	var prBranch string
 	if eventName == "workflow_dispatch" {
-		// Use the current branch
-		prBranch = "test-pdd-action"
-		action.Infof("Using current branch for workflow_dispatch: %s", prBranch)
+		// Use the configured branch or fallback to GitHub ref
+		prBranch = branchName
+		
+		// For development testing, use actual git branch if possible
+		if prBranch == "main" && os.Getenv("GITHUB_REF_NAME") != "" {
+			prBranch = os.Getenv("GITHUB_REF_NAME")
+		}
+		
+		action.Infof("Using branch for workflow_dispatch: %s", prBranch)
 	} else {
 		githubClient := github.NewRawClient(githubToken)
-		prDetails, _, err := githubClient.PullRequests.Get(ctx, strings.Split(repoFullName, "/")[0], strings.Split(repoFullName, "/")[1], prNumber)
+		
+		// Split repository owner and name safely
+		repoParts := strings.Split(repoFullName, "/")
+		owner := repoParts[0]
+		repo := ""
+		if len(repoParts) > 1 {
+			repo = repoParts[1]
+		} else {
+			repo = repoFullName
+			owner = os.Getenv("GITHUB_REPOSITORY_OWNER")
+			if owner == "" {
+				owner = "unknown"
+			}
+		}
+		
+		prDetails, _, err := githubClient.PullRequests.Get(ctx, owner, repo, prNumber)
 		if err != nil {
 			action.Fatalf("Failed to get PR details: %v", err)
 		}
