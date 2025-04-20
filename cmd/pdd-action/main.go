@@ -52,8 +52,8 @@ func main() {
 
 	// Get GitHub context
 	eventName := os.Getenv("GITHUB_EVENT_NAME")
-	if eventName != "pull_request" && eventName != "workflow_dispatch" {
-		action.Fatalf("This action only works on pull_request or workflow_dispatch events, got: %s", eventName)
+	if eventName != "pull_request" && eventName != "workflow_dispatch" && eventName != "push" {
+		action.Fatalf("This action only works on pull_request, workflow_dispatch, or push events, got: %s", eventName)
 	}
 
 	repoFullName := os.Getenv("GITHUB_REPOSITORY")
@@ -64,10 +64,10 @@ func main() {
 	var prNumber int
 	var err error
 	
-	if eventName == "workflow_dispatch" {
-		// In workflow_dispatch mode, use a dummy PR number
+	if eventName == "workflow_dispatch" || eventName == "push" {
+		// In workflow_dispatch or push mode, use a dummy PR number
 		prNumber = 1
-		action.Infof("Running in workflow_dispatch mode - using dummy PR number: %d", prNumber)
+		action.Infof("Running in %s mode - using dummy PR number: %d", eventName, prNumber)
 	} else {
 		prString := os.Getenv("GITHUB_REF")
 		prNumber, err = extractPRNumber(prString)
@@ -92,8 +92,8 @@ func main() {
 	// Initialize GitHub client
 	client := github.NewClient(githubToken, repoFullName, config)
 
-	// For workflow_dispatch, skip PR merged check
-	if eventName != "workflow_dispatch" {
+	// For workflow_dispatch or push, skip PR merged check
+	if eventName != "workflow_dispatch" && eventName != "push" {
 		// Check if PR is merged to target branch
 		isMerged, err := client.IsPRMergedToTargetBranch(ctx, prNumber)
 		if err != nil {
@@ -105,7 +105,7 @@ func main() {
 			return
 		}
 	} else {
-		action.Infof("Running in workflow_dispatch mode - skipping PR merged check")
+		action.Infof("Running in %s mode - skipping PR merged check", eventName)
 		action.Infof("Using target branch for issues: %s", branchName)
 	}
 
@@ -141,9 +141,9 @@ func main() {
 
 	action.Infof("Created %d issues from TODO comments", len(processedComments))
 
-	// Get PR head branch name or use current branch for workflow_dispatch
+	// Get PR head branch name or use current branch for workflow_dispatch/push
 	var prBranch string
-	if eventName == "workflow_dispatch" {
+	if eventName == "workflow_dispatch" || eventName == "push" {
 		// Use the configured branch or fallback to GitHub ref
 		prBranch = branchName
 		
@@ -152,7 +152,7 @@ func main() {
 			prBranch = os.Getenv("GITHUB_REF_NAME")
 		}
 		
-		action.Infof("Using branch for workflow_dispatch: %s", prBranch)
+		action.Infof("Using branch for %s: %s", eventName, prBranch)
 	} else {
 		githubClient := github.NewRawClient(githubToken)
 		
