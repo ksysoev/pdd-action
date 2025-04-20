@@ -70,6 +70,7 @@ func (c *Client) CreateIssuesFromComments(ctx context.Context, comments []core.T
 	var processedComments []core.TodoComment
 
 	fmt.Printf("Creating issues for %d comments in repository %s/%s\n", len(comments), c.owner, c.repo)
+	fmt.Printf("Using branch for issue creation: %s\n", c.config.BranchName)
 
 	for _, comment := range comments {
 		// Skip comments that already have an issue URL
@@ -86,20 +87,30 @@ func (c *Client) CreateIssuesFromComments(ctx context.Context, comments []core.T
 		// Prepare issue body
 		body := fmt.Sprintf("Created from TODO comment in `%s` (line %d):\n\n", comment.FilePath, comment.LineNumber)
 		body += strings.Join(comment.Description, "\n")
+		body += fmt.Sprintf("\n\nTarget branch: `%s`", c.config.BranchName)
 
 		fmt.Printf("Creating issue with title: %s\n", title)
 		fmt.Printf("Labels: %v\n", comment.Labels)
 
+		// Clean up empty labels if any
+		var labels []string
+		for _, label := range comment.Labels {
+			if label != "" {
+				labels = append(labels, label)
+			}
+		}
+		
 		// Create the issue
 		issue, resp, err := c.client.Issues.Create(ctx, c.owner, c.repo, &github.IssueRequest{
 			Title:  &title,
 			Body:   &body,
-			Labels: &comment.Labels,
+			Labels: &labels,
 		})
 		if err != nil {
 			fmt.Printf("Error creating issue: %v\n", err)
 			if resp != nil {
 				fmt.Printf("Response status: %s\n", resp.Status)
+				fmt.Printf("Response body: %s\n", resp.Body)
 			}
 			return processedComments, fmt.Errorf("failed to create issue for comment in %s (line %d): %w",
 				comment.FilePath, comment.LineNumber, err)
@@ -128,6 +139,14 @@ func (c *Client) IsPRMergedToTargetBranch(ctx context.Context, prNumber int) (bo
 // UpdateCommentInFile updates the TODO comment in the file with the issue URL
 func (c *Client) UpdateCommentInFile(ctx context.Context, comment core.TodoComment, prNumber int, branch string) error {
 	fmt.Printf("Updating comment in file %s (line %d) for branch %s\n", comment.FilePath, comment.LineNumber, branch)
+	
+	// Make sure branch is non-empty
+	if branch == "" {
+		fmt.Printf("Branch name is empty, using default branch: %s\n", c.config.BranchName)
+		branch = c.config.BranchName
+	}
+	
+	fmt.Printf("Attempting to get file contents from branch: %s\n", branch)
 	
 	// Get file content from the PR branch
 	fileContent, _, resp, err := c.client.Repositories.GetContents(

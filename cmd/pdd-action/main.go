@@ -96,6 +96,7 @@ func main() {
 		}
 	} else {
 		action.Infof("Running in workflow_dispatch mode - skipping PR merged check")
+		action.Infof("Using target branch for issues: %s", branchName)
 	}
 
 	// Scan workspace for TODO comments
