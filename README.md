@@ -51,6 +51,11 @@ on:
   pull_request:
     types: [closed]
 
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 jobs:
   pdd:
     if: github.event.pull_request.merged == true
@@ -60,7 +65,7 @@ jobs:
         uses: actions/checkout@v3
         
       - name: Run PDD Action
-        uses: kirill/pdd-action@v1
+        uses: ksysoev/pdd-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch_name: main
@@ -84,6 +89,8 @@ The following inputs are available:
 3. For each unprocessed TODO comment (comments without an associated issue URL), it creates a new GitHub issue.
 4. It then updates the TODO comment in the code with the issue URL.
 
+> **Important:** Make sure to set the appropriate permissions in your workflow file as shown in the example above. The action needs `contents: write`, `issues: write`, and `pull-requests: write` permissions to function correctly.
+
 // TODO: Add section on supported comment formats
 // Labels: documentation
 // Provide examples of TODO comments in different languages
@@ -95,7 +102,7 @@ To build and test this action locally:
 
 ```bash
 # Clone the repository
-git clone https://github.com/kirill/pdd-action.git
+git clone https://github.com/ksysoev/pdd-action.git
 cd pdd-action
 
 # Build the project
