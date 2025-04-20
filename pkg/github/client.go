@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v60/github"
-	"github.com/kirill/pdd-action/pkg/core"
+	"github.com/ksysoev/pdd-action/pkg/core"
 	"golang.org/x/oauth2"
 )
 

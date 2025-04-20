@@ -5,14 +5,17 @@ WORKDIR /app
 # Copy go.mod and go.sum
 COPY go.mod go.sum ./
 
-# Download dependencies
-RUN go mod download
+# Tidy and download dependencies
+RUN go mod tidy && go mod download
 
 # Copy source code
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o pdd-action ./cmd/pdd-action
+# Run tidy again with all source files
+RUN go mod tidy
+
+# Build the application (without CGO)
+RUN go build -o pdd-action ./cmd/pdd-action
 
 # Use a small image for the final container
 FROM alpine:latest

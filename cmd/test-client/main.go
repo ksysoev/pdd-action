@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kirill/pdd-action/pkg/core"
-	"github.com/kirill/pdd-action/pkg/github"
+	"github.com/ksysoev/pdd-action/pkg/core"
+	"github.com/ksysoev/pdd-action/pkg/github"
 )
 
 func main() {

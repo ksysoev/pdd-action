@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kirill/pdd-action/pkg/core"
-	"github.com/kirill/pdd-action/pkg/github"
+	"github.com/ksysoev/pdd-action/pkg/core"
+	"github.com/ksysoev/pdd-action/pkg/github"
 	"github.com/sethvargo/go-githubactions"
 )
 
