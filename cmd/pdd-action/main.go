@@ -160,11 +160,40 @@ func main() {
 
 // extractPRNumber extracts the PR number from the GITHUB_REF
 func extractPRNumber(refString string) (int, error) {
-	// Expected format: refs/pull/{number}/merge
-	parts := strings.Split(refString, "/")
-	if len(parts) < 3 {
-		return 0, fmt.Errorf("invalid GITHUB_REF format: %s", refString)
+	// GitHub Actions format: refs/pull/{number}/merge
+	pullPrefix := "refs/pull/"
+	if strings.HasPrefix(refString, pullPrefix) {
+		numStr := strings.TrimPrefix(refString, pullPrefix)
+		numStr = strings.Split(numStr, "/")[0]
+		return strconv.Atoi(numStr)
 	}
 
-	return strconv.Atoi(parts[2])
+	// If we can't extract from GITHUB_REF, try GITHUB_REF_NAME (which might be just the number in some cases)
+	refName := os.Getenv("GITHUB_REF_NAME")
+	if refName != "" {
+		// Try to extract number from the ref name (might be "123/merge" or just "123")
+		parts := strings.Split(refName, "/")
+		return strconv.Atoi(parts[0])
+	}
+
+	// Try to get it from GITHUB_EVENT_PATH
+	eventPath := os.Getenv("GITHUB_EVENT_PATH")
+	if eventPath != "" {
+		data, err := os.ReadFile(eventPath)
+		if err == nil {
+			// Extract PR number from event payload JSON
+			// This is a simple string search, not proper JSON parsing
+			prMarker := "\"number\":"
+			if idx := strings.Index(string(data), prMarker); idx > 0 {
+				numStart := idx + len(prMarker)
+				numEnd := strings.Index(string(data[numStart:]), ",")
+				if numEnd > 0 {
+					numStr := strings.TrimSpace(string(data[numStart : numStart+numEnd]))
+					return strconv.Atoi(numStr)
+				}
+			}
+		}
+	}
+
+	return 0, fmt.Errorf("could not extract PR number from refs: %s", refString)
 }
