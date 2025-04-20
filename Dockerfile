@@ -1,5 +1,8 @@
 FROM golang:1.22-alpine AS builder
 
+# Set GOTOOLCHAIN to local to prevent toolchain updates
+ENV GOTOOLCHAIN=local
+
 WORKDIR /app
 
 # Copy go.mod and go.sum

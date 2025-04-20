@@ -1,8 +1,6 @@
 module github.com/kirill/pdd-action
 
-go 1.23.0
-
-toolchain go1.24.2
+go 1.21.0
 
 require (
 	github.com/google/go-github/v60 v60.0.0
