@@ -90,6 +90,14 @@ func (c *Client) CreateIssuesFromComments(ctx context.Context, comments []core.T
 			rateLimit.GetCore().Limit)
 	}
 
+	// Check permissions on the repository
+	permissions, _, perr := c.client.Repositories.GetPermissionLevel(ctx, c.owner, c.repo, "")
+	if perr != nil {
+		fmt.Printf("Failed to get repository permissions: %v\n", perr)
+	} else {
+		fmt.Printf("Current user permissions: %s\n", permissions.GetPermission())
+	}
+
 	for _, comment := range comments {
 		// Skip comments that already have an issue URL
 		if comment.IssueURL != "" {
