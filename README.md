@@ -96,6 +96,29 @@ The following inputs are available:
 // Provide examples of TODO comments in different languages
 // to make it clearer how to use the tool across different codebases
 
+## Container Image
+
+This action uses a pre-built container image published to GitHub Container Registry. The container is automatically built and published when changes are pushed to the main branch or when a new tag is created.
+
+You can find the container images at: [ghcr.io/ksysoev/pdd-action](https://github.com/ksysoev/pdd-action/pkgs/container/pdd-action)
+
+## Versioning and Releases
+
+This action follows semantic versioning. You can use the action with specific version tags:
+
+```yaml
+# Use a specific version
+uses: ksysoev/pdd-action@v1.0.0
+
+# Use the latest version of a major release
+uses: ksysoev/pdd-action@v1
+
+# Use the latest version
+uses: ksysoev/pdd-action@main
+```
+
+Each release includes a pre-built container image that is automatically published to GitHub Container Registry.
+
 ## Development
 
 To build and test this action locally:
@@ -110,4 +133,10 @@ go build -o pdd-action ./cmd/pdd-action
 
 # Run the project locally
 ./pdd-action
+
+# Build the container locally
+docker build -t pdd-action .
+
+# Test the container
+docker run --rm pdd-action
 ```
