@@ -1,0 +1,22 @@
+name: PDD Action
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  pdd:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Run PDD Action
+        uses: kirill/pdd-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch_name: main
+          issue_title_prefix: "[PDD]"

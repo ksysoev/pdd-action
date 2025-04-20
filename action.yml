@@ -1,0 +1,23 @@
+name: 'PDD-Action'
+description: 'GitHub Action to add Puzzle Driven Development into your GitHub Repository'
+author: 'Kirill'
+branding:
+  icon: 'checklist'
+  color: 'blue'
+
+inputs:
+  github_token:
+    description: 'GitHub token to create issues in the repository'
+    required: true
+  branch_name:
+    description: 'Branch name to create issues in the repository'
+    required: false
+    default: 'main'
+  issue_title_prefix:
+    description: 'Prefix to add to issue titles'
+    required: false
+    default: ''
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
