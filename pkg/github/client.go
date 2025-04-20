@@ -28,6 +28,13 @@ func NewClient(token, repoFullName string, config core.Config) *Client {
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
 
+	// Debug token prefix (don't print full token)
+	if len(token) > 4 {
+		fmt.Printf("Token prefix: %s...\n", token[:4])
+	} else {
+		fmt.Printf("Token is too short or empty\n")
+	}
+
 	parts := strings.Split(repoFullName, "/")
 	var owner, repo string
 	
@@ -46,6 +53,7 @@ func NewClient(token, repoFullName string, config core.Config) *Client {
 	}
 	
 	fmt.Printf("Repository owner: %s, repo: %s\n", owner, repo)
+	fmt.Printf("Target branch for issues: %s\n", config.BranchName)
 
 	return &Client{
 		client: client,
@@ -71,6 +79,16 @@ func (c *Client) CreateIssuesFromComments(ctx context.Context, comments []core.T
 
 	fmt.Printf("Creating issues for %d comments in repository %s/%s\n", len(comments), c.owner, c.repo)
 	fmt.Printf("Using branch for issue creation: %s\n", c.config.BranchName)
+
+	// Verify credentials by getting rate limit info
+	rateLimit, _, err := c.client.RateLimits(ctx)
+	if err != nil {
+		fmt.Printf("Failed to get rate limits - auth may be invalid: %v\n", err)
+	} else {
+		fmt.Printf("GitHub API rate limit: %d/%d remaining\n", 
+			rateLimit.GetCore().Remaining, 
+			rateLimit.GetCore().Limit)
+	}
 
 	for _, comment := range comments {
 		// Skip comments that already have an issue URL
@@ -100,20 +118,39 @@ func (c *Client) CreateIssuesFromComments(ctx context.Context, comments []core.T
 			}
 		}
 		
+		// Print detailed debug information
+		fmt.Printf("About to create issue in %s/%s\n", c.owner, c.repo)
+		fmt.Printf("Issue title: %s\n", title)
+		fmt.Printf("Issue body length: %d characters\n", len(body))
+		fmt.Printf("Issue labels: %v\n", labels)
+		
 		// Create the issue
-		issue, resp, err := c.client.Issues.Create(ctx, c.owner, c.repo, &github.IssueRequest{
+		issueRequest := &github.IssueRequest{
 			Title:  &title,
 			Body:   &body,
-			Labels: &labels,
-		})
+		}
+		
+		// Only add labels if we have any
+		if len(labels) > 0 {
+			issueRequest.Labels = &labels
+		}
+		
+		issue, resp, err := c.client.Issues.Create(ctx, c.owner, c.repo, issueRequest)
 		if err != nil {
 			fmt.Printf("Error creating issue: %v\n", err)
 			if resp != nil {
 				fmt.Printf("Response status: %s\n", resp.Status)
-				fmt.Printf("Response body: %s\n", resp.Body)
+				
+				// Try to get more information about the error
+				if resp.StatusCode == 403 {
+					fmt.Printf("Forbidden error - check token permissions\n")
+				} else if resp.StatusCode == 404 {
+					fmt.Printf("Not Found error - check repository exists and is accessible\n")
+				} else if resp.StatusCode == 422 {
+					fmt.Printf("Validation error - check if required fields are missing\n")
+				}
 			}
-			return processedComments, fmt.Errorf("failed to create issue for comment in %s (line %d): %w",
-				comment.FilePath, comment.LineNumber, err)
+			continue // Skip this comment and try the next one
 		}
 
 		// Update the comment with the issue URL

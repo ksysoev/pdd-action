@@ -21,11 +21,21 @@ func main() {
 	// Get action inputs - first try action inputs, then fall back to env vars
 	githubToken := action.GetInput("github_token")
 	if githubToken == "" {
+		// Try various environment variable names that might contain the token
 		githubToken = os.Getenv("PDD_GITHUB_TOKEN")
 		if githubToken == "" {
-			action.Fatalf("github_token input is required")
+			githubToken = os.Getenv("GITHUB_TOKEN")
+			if githubToken == "" {
+				// Final fallback to catch other possible env var names
+				githubToken = os.Getenv("GH_TOKEN")
+				if githubToken == "" {
+					action.Fatalf("github_token input is required")
+				}
+			}
 		}
 	}
+	
+	action.Infof("GitHub token is present with length: %d", len(githubToken))
 
 	branchName := action.GetInput("branch_name")
 	if branchName == "" {
